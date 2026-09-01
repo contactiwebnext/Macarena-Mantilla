@@ -4,10 +4,15 @@ import {
   PenTool, Feather, BookOpen, Clock, Sparkles, CheckCircle2, 
   Send, Heart, ShieldCheck, FileText, Check, ChevronRight, 
   HelpCircle, RefreshCw, Music, Calendar, DollarSign, MessageSquare, 
-  Coffee, Star, ArrowRight, UserCheck
+  Coffee, Star, ArrowRight, UserCheck, CreditCard, Lock, X, 
+  ExternalLink
 } from "lucide-react";
 import { saveMessageToFirestore } from "../lib/firestoreSync";
 import { ContactMessage } from "../types";
+
+// Official Direct Integration Links
+const PAY_NOW_URL = "https://www.paypal.com/ncp/payment/Y57GPU6U3735C";
+const BOOK_NOW_URL = "https://scheduler.zoom.us/macarena-mantilla-vi0qwt/macarena";
 
 interface CollaborativeWritingProps {
   onShowToast: (msg: string) => void;
@@ -47,7 +52,7 @@ export default function CollaborativeWritingPage({ onShowToast, onNavigateToTab 
   const [activePromptIndex, setActivePromptIndex] = useState(0);
   const [draftSnippet, setDraftSnippet] = useState("");
 
-  // Booking Form State
+  // Booking Inquiry Form State
   const [bookingForm, setBookingForm] = useState({
     name: "",
     email: "",
@@ -61,7 +66,7 @@ export default function CollaborativeWritingPage({ onShowToast, onNavigateToTab 
   // FAQ Accordion State
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
-  // Price Calculation: CAD 30 / hour (with 10% discount on 5-hour package)
+  // Price Calculation: CAD 30 / hour (with discount on 5-hour package)
   const baseRatePerHour = 30;
   const calculateTotal = (hours: number) => {
     if (hours === 5) {
@@ -72,27 +77,37 @@ export default function CollaborativeWritingPage({ onShowToast, onNavigateToTab 
 
   const currentTotal = calculateTotal(selectedHours);
 
+  // Format title helper
+  const getFormatLabel = () => {
+    switch (sessionFormat) {
+      case "video": return "1-on-1 Live Video (Google Meet / Zoom)";
+      case "async": return "Async Shared Google Doc Co-Writing";
+      case "audio": return "Audio Voice Memo Exchange & Line Notes";
+      case "inperson": return "Vancouver BC In-Person Studio Co-Writing";
+      default: return "1-on-1 Co-Writing Session";
+    }
+  };
+
+  // Submit standard Booking Inquiry (saves details to Firestore and guides to Zoom Scheduler / PayPal)
   const handleBookingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     const messagePayload: ContactMessage = {
-      id: "booking-" + Date.now(),
+      id: "cowrite-" + Date.now(),
       name: bookingForm.name,
       email: bookingForm.email,
-      subject: `[Collaborative Writing Booking - ${selectedHours} hr(s) @ CAD $${currentTotal}]`,
-      message: `=== Collaborative Writing Inquiry ===
+      subject: `[Collaborative Writing Inquiry - ${selectedHours} hr(s) @ CAD $${currentTotal}]`,
+      message: `=== Collaborative Writing Session Inquiry ===
 Duration: ${selectedHours} hour(s) (CAD $${currentTotal})
-Format: ${
-  sessionFormat === "video" ? "1-on-1 Live Video (Google Meet / Zoom)" :
-  sessionFormat === "async" ? "Async Shared Google Doc Co-Writing" :
-  sessionFormat === "audio" ? "Audio Voice Memo Exchange & Line Notes" :
-  "Vancouver BC In-Person Studio Co-Writing"
-}
+Format: ${getFormatLabel()}
 Genre/Topic: ${selectedTopic}
 Preferred Date: ${bookingForm.preferredDate || "Flexible"} (${bookingForm.preferredTime})
 Project Vision & Notes: ${bookingForm.notes || "None provided"}
-${draftSnippet ? `\nAttached User Scratchpad / Draft:\n${draftSnippet}` : ""}`,
+${draftSnippet ? `\nAttached User Scratchpad / Draft:\n${draftSnippet}` : ""}
+
+Direct PayPal Link: ${PAY_NOW_URL}
+Direct Zoom Scheduler: ${BOOK_NOW_URL}`,
       date: new Date().toISOString().split("T")[0]
     };
 
@@ -100,11 +115,11 @@ ${draftSnippet ? `\nAttached User Scratchpad / Draft:\n${draftSnippet}` : ""}`,
       await saveMessageToFirestore(messagePayload);
       setIsSubmitting(false);
       setBookingSubmitted(true);
-      onShowToast(`Co-writing request received for CAD $${currentTotal}! Macarena will follow up within 24-48 hours.`);
+      onShowToast(`Inquiry saved! You can now select your time on Zoom or pay via PayPal.`);
     } catch (err) {
       setIsSubmitting(false);
       setBookingSubmitted(true);
-      onShowToast("Co-writing request recorded successfully!");
+      onShowToast("Inquiry recorded successfully!");
     }
   };
 
@@ -128,8 +143,35 @@ ${draftSnippet ? `\nAttached User Scratchpad / Draft:\n${draftSnippet}` : ""}`,
           Whether you are refining heartfelt poetry stanzas, composing song lyrics, drafting an introspective essay, or processing thoughts through therapeutic journaling—let's write side-by-side with genuine attention, cadence, and care.
         </p>
 
+        {/* Hyperlinked Action Buttons in Hero */}
+        <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
+          <a
+            href={BOOK_NOW_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            id="hero-book-now-btn"
+            className="bg-slate-900 hover:bg-slate-800 text-white text-xs uppercase tracking-widest px-8 py-4 rounded-full font-bold transition-all shadow-md hover:shadow-lg flex items-center gap-2 cursor-pointer group"
+          >
+            <Calendar className="w-4 h-4 text-pink-300 group-hover:scale-110 transition-transform" />
+            <span>Book Now</span>
+            <ExternalLink className="w-3 h-3 text-slate-400" />
+          </a>
+
+          <a
+            href={PAY_NOW_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            id="hero-pay-now-btn"
+            className="bg-gradient-to-r from-brand-pink via-brand-purple to-violet-accent hover:from-pink-500 hover:to-purple-600 text-white text-xs uppercase tracking-widest px-8 py-4 rounded-full font-bold transition-all shadow-md hover:shadow-lg flex items-center gap-2 cursor-pointer group"
+          >
+            <CreditCard className="w-4 h-4 text-teal-200 group-hover:scale-110 transition-transform" />
+            <span>Pay Now</span>
+            <ExternalLink className="w-3 h-3 text-white/80" />
+          </a>
+        </div>
+
         {/* Feature Badges */}
-        <div className="flex flex-wrap justify-center gap-3 pt-2">
+        <div className="flex flex-wrap justify-center gap-3 pt-3">
           <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-full border border-slate-200/80 shadow-xs text-xs font-medium text-slate-700">
             <DollarSign className="w-3.5 h-3.5 text-teal-600" />
             <span>CAD $30/hr Flat Rate</span>
@@ -233,7 +275,7 @@ ${draftSnippet ? `\nAttached User Scratchpad / Draft:\n${draftSnippet}` : ""}`,
       </section>
 
       {/* INTERACTIVE CALCULATOR & BOOKING REQUEST SECTION */}
-      <section className="mb-20 bg-white border border-slate-100 rounded-[36px] p-6 sm:p-10 md:p-14 shadow-sm text-left">
+      <section id="booking-section" className="mb-20 bg-white border border-slate-100 rounded-[36px] p-6 sm:p-10 md:p-14 shadow-sm text-left">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
           
           {/* Left Column: Interactive Estimator & Packages */}
@@ -339,8 +381,8 @@ ${draftSnippet ? `\nAttached User Scratchpad / Draft:\n${draftSnippet}` : ""}`,
               </div>
             </div>
 
-            {/* Real-time Rate Summary Box */}
-            <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white p-6 rounded-3xl shadow-md space-y-4">
+            {/* Real-time Rate Summary Box with Direct Hyperlinked Buttons */}
+            <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white p-6 sm:p-7 rounded-3xl shadow-md space-y-5">
               <div className="flex items-center justify-between border-b border-white/10 pb-4">
                 <div>
                   <span className="text-[10px] font-mono uppercase tracking-widest text-slate-400">Total Investment</span>
@@ -369,29 +411,112 @@ ${draftSnippet ? `\nAttached User Scratchpad / Draft:\n${draftSnippet}` : ""}`,
                   <span>Post-session action plan & prompt exercises included.</span>
                 </div>
               </div>
+
+              {/* Direct Hyperlinks on Summary Box */}
+              <div className="pt-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <a
+                  href={BOOK_NOW_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  id="summary-book-now-btn"
+                  className="w-full bg-white/10 hover:bg-white/20 text-white border border-white/20 text-xs uppercase tracking-widest py-3 rounded-full font-bold transition-all flex items-center justify-center gap-2 cursor-pointer group"
+                >
+                  <Calendar className="w-3.5 h-3.5 text-pink-300 group-hover:scale-110 transition-transform" />
+                  <span>Book Now</span>
+                  <ExternalLink className="w-3 h-3 text-slate-400" />
+                </a>
+
+                <a
+                  href={PAY_NOW_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  id="summary-pay-now-btn"
+                  className="w-full bg-gradient-to-r from-brand-pink via-brand-purple to-violet-accent hover:from-pink-500 hover:to-purple-600 text-white text-xs uppercase tracking-widest py-3 rounded-full font-bold transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer group"
+                >
+                  <CreditCard className="w-3.5 h-3.5 text-teal-200 group-hover:scale-110 transition-transform" />
+                  <span>Pay Now</span>
+                  <ExternalLink className="w-3 h-3 text-white/80" />
+                </a>
+              </div>
             </div>
           </div>
 
-          {/* Right Column: Direct Booking Form */}
+          {/* Right Column: Direct Booking & Fast-Action Links */}
           <div className="lg:col-span-6 bg-cream/70 border border-slate-200/80 rounded-3xl p-6 sm:p-8 space-y-6">
             <div className="space-y-1.5">
-              <span className="text-[10px] font-mono uppercase tracking-widest text-brand-purple font-bold">Step 4</span>
-              <h3 className="font-serif text-2xl font-bold text-charcoal">Book Your Co-Writing Session</h3>
+              <span className="text-[10px] font-mono uppercase tracking-widest text-brand-purple font-bold">Fast Action Portal</span>
+              <h3 className="font-serif text-2xl font-bold text-charcoal">Book Slot or Complete Payment</h3>
               <p className="text-xs text-slate-500">
-                Submit your inquiry below. Macarena will confirm the calendar slot and send the collaboration link within 24–48 hours.
+                You can immediately schedule on Zoom with <strong>Book Now</strong> or complete payment securely via PayPal with <strong>Pay Now</strong>.
               </p>
             </div>
 
+            {/* Quick Link Banner Buttons */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs">
+              <a
+                href={BOOK_NOW_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-center transition-all flex flex-col items-center justify-center gap-1 group shadow-xs cursor-pointer"
+              >
+                <div className="flex items-center gap-1.5 font-bold text-xs uppercase tracking-wider">
+                  <Calendar className="w-4 h-4 text-pink-300 group-hover:scale-110 transition-transform" />
+                  <span>Book Now</span>
+                  <ExternalLink className="w-3 h-3 text-slate-400" />
+                </div>
+                <span className="text-[10px] text-slate-300 font-normal">Direct Zoom Calendar</span>
+              </a>
+
+              <a
+                href={PAY_NOW_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-3.5 rounded-xl bg-gradient-to-r from-brand-pink via-brand-purple to-violet-accent hover:from-pink-500 hover:to-purple-600 text-white text-center transition-all flex flex-col items-center justify-center gap-1 group shadow-xs cursor-pointer"
+              >
+                <div className="flex items-center gap-1.5 font-bold text-xs uppercase tracking-wider">
+                  <CreditCard className="w-4 h-4 text-teal-200 group-hover:scale-110 transition-transform" />
+                  <span>Pay Now</span>
+                  <ExternalLink className="w-3 h-3 text-white/90" />
+                </div>
+                <span className="text-[10px] text-pink-100 font-normal">PayPal Secure Checkout</span>
+              </a>
+            </div>
+
             {bookingSubmitted ? (
-              <div className="bg-white p-6 rounded-2xl border border-teal-200 text-center space-y-4 shadow-xs">
+              <div className="bg-white p-6 sm:p-8 rounded-2xl border border-teal-200 text-center space-y-4 shadow-xs">
                 <CheckCircle2 className="w-12 h-12 text-teal-600 mx-auto animate-bounce" />
                 <h4 className="font-serif text-xl font-bold text-teal-900">Session Request Received! ✍️</h4>
                 <p className="text-xs text-teal-800 leading-relaxed">
-                  Thank you, <span className="font-bold">{bookingForm.name}</span>. We have logged your request for <span className="font-bold">{selectedHours} hour(s)</span> at <span className="font-bold">CAD ${currentTotal}</span> focusing on <span className="font-bold">{selectedTopic}</span>.
+                  Thank you, <span className="font-bold">{bookingForm.name}</span>. We have logged your request for <span className="font-bold">{selectedHours} hour(s)</span> at <span className="font-bold">CAD ${currentTotal}</span>.
                 </p>
-                <p className="text-xs text-slate-500">
-                  Confirmation sent to <span className="font-mono text-slate-700 font-bold">{bookingForm.email}</span>.
-                </p>
+                
+                {/* Instant Link Callouts */}
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3 mt-4 text-left">
+                  <p className="text-xs text-slate-700 font-bold">Ready to complete your reservation right away?</p>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <a
+                      href={BOOK_NOW_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 bg-slate-900 text-white text-xs uppercase tracking-wider py-2.5 px-3 rounded-xl font-bold text-center flex items-center justify-center gap-1 hover:bg-slate-800"
+                    >
+                      <Calendar className="w-3.5 h-3.5 text-pink-300" />
+                      <span>1. Book Zoom Slot</span>
+                      <ExternalLink className="w-2.5 h-2.5" />
+                    </a>
+                    <a
+                      href={PAY_NOW_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 bg-gradient-to-r from-brand-purple to-brand-pink text-white text-xs uppercase tracking-wider py-2.5 px-3 rounded-xl font-bold text-center flex items-center justify-center gap-1 hover:shadow"
+                    >
+                      <CreditCard className="w-3.5 h-3.5" />
+                      <span>2. Pay via PayPal</span>
+                      <ExternalLink className="w-2.5 h-2.5" />
+                    </a>
+                  </div>
+                </div>
+
                 <div className="pt-2">
                   <button
                     type="button"
@@ -407,6 +532,12 @@ ${draftSnippet ? `\nAttached User Scratchpad / Draft:\n${draftSnippet}` : ""}`,
               </div>
             ) : (
               <form onSubmit={handleBookingSubmit} className="space-y-4">
+                <div className="text-left">
+                  <span className="text-[11px] text-slate-600 font-medium">
+                    Or send project details & goals directly to Macarena's inbox:
+                  </span>
+                </div>
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-mono uppercase tracking-wider text-slate-700 font-bold">Your Name *</label>
@@ -487,24 +618,32 @@ ${draftSnippet ? `\nAttached User Scratchpad / Draft:\n${draftSnippet}` : ""}`,
                   </div>
                 )}
 
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full bg-slate-900 hover:bg-slate-800 text-white text-xs uppercase tracking-widest py-4 rounded-full font-bold transition-all shadow hover:shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
-                >
-                  {isSubmitting ? (
-                    <RefreshCw className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <>
-                      <Send className="w-4 h-4 text-pink-300" />
-                      <span>Reserve Session ({selectedHours} hr • CAD ${currentTotal})</span>
-                    </>
-                  )}
-                </button>
+                {/* Form Submit Button */}
+                <div className="pt-2">
+                  <button
+                    type="submit"
+                    id="form-submit-inquiry-btn"
+                    disabled={isSubmitting}
+                    className="w-full bg-slate-900 hover:bg-slate-800 text-white text-xs uppercase tracking-widest py-3.5 rounded-full font-bold transition-all shadow hover:shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                  >
+                    {isSubmitting ? (
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4 text-pink-300" />
+                        <span>Send Project Inquiry & Notes</span>
+                      </>
+                    )}
+                  </button>
+                </div>
 
-                <p className="text-[10px] text-slate-400 text-center">
-                  🔒 No immediate charge upon form submission. Macarena confirms mutual availability first.
-                </p>
+                <div className="flex items-center justify-center gap-4 text-[10px] text-slate-500 pt-1">
+                  <span className="flex items-center gap-1">
+                    <Lock className="w-3 h-3 text-teal-600" /> 256-Bit SSL Encrypted
+                  </span>
+                  <span>•</span>
+                  <span>CAD $30 / hr Rate Guaranteed</span>
+                </div>
               </form>
             )}
           </div>
@@ -674,7 +813,11 @@ ${draftSnippet ? `\nAttached User Scratchpad / Draft:\n${draftSnippet}` : ""}`,
           {[
             {
               q: "How does the CAD $30/hour billing work?",
-              a: "Sessions are billed strictly at CAD $30 per hour. If you book a 1-hour session, the total is CAD $30. If you book the 5-hour intensive bundle, you receive a 10% discount ($135 CAD). International clients can pay via Stripe or PayPal with automatic currency conversion."
+              a: "Sessions are billed strictly at CAD $30 per hour. If you book a 1-hour session, the total is CAD $30. If you book the 5-hour intensive bundle, you receive a discount ($135 CAD). You can pay directly with the PayPal 'Pay Now' button."
+            },
+            {
+              q: "How do I schedule my session time?",
+              a: "You can click 'Book Now' at any time to open Macarena's live Zoom Scheduler calendar (https://scheduler.zoom.us/macarena-mantilla-vi0qwt/macarena) and select an open time slot that works best for your schedule."
             },
             {
               q: "Who owns the copyright to the words written together?",
@@ -724,21 +867,30 @@ ${draftSnippet ? `\nAttached User Scratchpad / Draft:\n${draftSnippet}` : ""}`,
         <p className="text-xs text-slate-300 max-w-lg mx-auto leading-relaxed">
           Book your first hour of collaborative writing at CAD $30/hour and experience the clarity of intentional, slow literature mentorship.
         </p>
-        <div className="flex flex-wrap justify-center gap-3 pt-2">
-          <button
-            type="button"
-            onClick={() => window.scrollTo({ top: 350, behavior: "smooth" })}
-            className="bg-gradient-to-r from-brand-pink via-brand-purple to-violet-accent hover:from-pink-500 hover:to-purple-600 text-white text-xs uppercase tracking-widest px-8 py-3.5 rounded-full font-bold transition-all shadow-md cursor-pointer"
+        <div className="flex flex-wrap justify-center gap-4 pt-2">
+          <a
+            href={BOOK_NOW_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            id="footer-book-now-btn"
+            className="bg-white/10 hover:bg-white/20 text-white text-xs uppercase tracking-widest px-8 py-3.5 rounded-full font-bold transition-all border border-white/20 cursor-pointer flex items-center gap-2 group"
           >
-            Customize Your Session Now
-          </button>
-          <button
-            type="button"
-            onClick={() => onNavigateToTab("contact")}
-            className="bg-white/10 hover:bg-white/20 text-white text-xs uppercase tracking-widest px-6 py-3.5 rounded-full font-semibold transition-all border border-white/20 cursor-pointer"
+            <Calendar className="w-4 h-4 text-pink-300 group-hover:scale-110 transition-transform" />
+            <span>Book Now</span>
+            <ExternalLink className="w-3 h-3 text-slate-400" />
+          </a>
+          
+          <a
+            href={PAY_NOW_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            id="footer-pay-now-btn"
+            className="bg-gradient-to-r from-brand-pink via-brand-purple to-violet-accent hover:from-pink-500 hover:to-purple-600 text-white text-xs uppercase tracking-widest px-8 py-3.5 rounded-full font-bold transition-all shadow-md cursor-pointer flex items-center gap-2 group"
           >
-            Ask a General Question
-          </button>
+            <CreditCard className="w-4 h-4 text-teal-200 group-hover:scale-110 transition-transform" />
+            <span>Pay Now</span>
+            <ExternalLink className="w-3 h-3 text-white/90" />
+          </a>
         </div>
       </div>
     </div>
