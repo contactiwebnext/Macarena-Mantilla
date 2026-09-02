@@ -11,7 +11,9 @@ import { saveMessageToFirestore } from "../lib/firestoreSync";
 import { ContactMessage } from "../types";
 
 // Official Direct Integration Links
-const PAY_NOW_URL = "https://www.paypal.com/ncp/payment/Y57GPU6U3735C";
+const PAY_PAL_URL = "https://www.paypal.com/ncp/payment/Y57GPU6U3735C";
+const PAY_STRIPE_URL = "https://buy.stripe.com/3cIfZjexk8ZMgXCeDHd7q01";
+const PAY_NOW_URL = PAY_PAL_URL;
 const BOOK_NOW_URL = "https://scheduler.zoom.us/macarena-mantilla-vi0qwt/macarena";
 
 interface CollaborativeWritingProps {
@@ -106,7 +108,8 @@ Preferred Date: ${bookingForm.preferredDate || "Flexible"} (${bookingForm.prefer
 Project Vision & Notes: ${bookingForm.notes || "None provided"}
 ${draftSnippet ? `\nAttached User Scratchpad / Draft:\n${draftSnippet}` : ""}
 
-Direct PayPal Link: ${PAY_NOW_URL}
+Direct Stripe Link: ${PAY_STRIPE_URL}
+Direct PayPal Link: ${PAY_PAL_URL}
 Direct Zoom Scheduler: ${BOOK_NOW_URL}`,
       date: new Date().toISOString().split("T")[0]
     };
@@ -115,7 +118,7 @@ Direct Zoom Scheduler: ${BOOK_NOW_URL}`,
       await saveMessageToFirestore(messagePayload);
       setIsSubmitting(false);
       setBookingSubmitted(true);
-      onShowToast(`Inquiry saved! You can now select your time on Zoom or pay via PayPal.`);
+      onShowToast(`Inquiry saved! You can now select your time on Zoom or complete payment via Stripe or PayPal.`);
     } catch (err) {
       setIsSubmitting(false);
       setBookingSubmitted(true);
@@ -144,13 +147,13 @@ Direct Zoom Scheduler: ${BOOK_NOW_URL}`,
         </p>
 
         {/* Hyperlinked Action Buttons in Hero */}
-        <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
+        <div className="flex flex-wrap items-center justify-center gap-3.5 pt-2">
           <a
             href={BOOK_NOW_URL}
             target="_blank"
             rel="noopener noreferrer"
             id="hero-book-now-btn"
-            className="bg-slate-900 hover:bg-slate-800 text-white text-xs uppercase tracking-widest px-8 py-4 rounded-full font-bold transition-all shadow-md hover:shadow-lg flex items-center gap-2 cursor-pointer group"
+            className="bg-slate-900 hover:bg-slate-800 text-white text-xs uppercase tracking-widest px-7 py-4 rounded-full font-bold transition-all shadow-md hover:shadow-lg flex items-center gap-2 cursor-pointer group"
           >
             <Calendar className="w-4 h-4 text-pink-300 group-hover:scale-110 transition-transform" />
             <span>Book Now</span>
@@ -158,14 +161,26 @@ Direct Zoom Scheduler: ${BOOK_NOW_URL}`,
           </a>
 
           <a
-            href={PAY_NOW_URL}
+            href={PAY_STRIPE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            id="hero-pay-stripe-btn"
+            className="bg-gradient-to-r from-indigo-600 via-purple-600 to-brand-purple hover:from-indigo-500 hover:to-purple-500 text-white text-xs uppercase tracking-widest px-7 py-4 rounded-full font-bold transition-all shadow-md hover:shadow-lg flex items-center gap-2 cursor-pointer group"
+          >
+            <CreditCard className="w-4 h-4 text-indigo-200 group-hover:scale-110 transition-transform" />
+            <span>Pay Now (Stripe)</span>
+            <ExternalLink className="w-3 h-3 text-white/80" />
+          </a>
+
+          <a
+            href={PAY_PAL_URL}
             target="_blank"
             rel="noopener noreferrer"
             id="hero-pay-now-btn"
-            className="bg-gradient-to-r from-brand-pink via-brand-purple to-violet-accent hover:from-pink-500 hover:to-purple-600 text-white text-xs uppercase tracking-widest px-8 py-4 rounded-full font-bold transition-all shadow-md hover:shadow-lg flex items-center gap-2 cursor-pointer group"
+            className="bg-gradient-to-r from-brand-pink via-brand-purple to-violet-accent hover:from-pink-500 hover:to-purple-600 text-white text-xs uppercase tracking-widest px-7 py-4 rounded-full font-bold transition-all shadow-md hover:shadow-lg flex items-center gap-2 cursor-pointer group"
           >
             <CreditCard className="w-4 h-4 text-teal-200 group-hover:scale-110 transition-transform" />
-            <span>Pay Now</span>
+            <span>Pay Now (PayPal)</span>
             <ExternalLink className="w-3 h-3 text-white/80" />
           </a>
         </div>
@@ -413,29 +428,41 @@ Direct Zoom Scheduler: ${BOOK_NOW_URL}`,
               </div>
 
               {/* Direct Hyperlinks on Summary Box */}
-              <div className="pt-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="pt-2 grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <a
                   href={BOOK_NOW_URL}
                   target="_blank"
                   rel="noopener noreferrer"
                   id="summary-book-now-btn"
-                  className="w-full bg-white/10 hover:bg-white/20 text-white border border-white/20 text-xs uppercase tracking-widest py-3 rounded-full font-bold transition-all flex items-center justify-center gap-2 cursor-pointer group"
+                  className="w-full bg-white/10 hover:bg-white/20 text-white border border-white/20 text-[11px] uppercase tracking-wider py-3 rounded-full font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer group text-center"
                 >
-                  <Calendar className="w-3.5 h-3.5 text-pink-300 group-hover:scale-110 transition-transform" />
+                  <Calendar className="w-3.5 h-3.5 text-pink-300 group-hover:scale-110 transition-transform shrink-0" />
                   <span>Book Now</span>
-                  <ExternalLink className="w-3 h-3 text-slate-400" />
+                  <ExternalLink className="w-3 h-3 text-slate-400 shrink-0" />
                 </a>
 
                 <a
-                  href={PAY_NOW_URL}
+                  href={PAY_STRIPE_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  id="summary-pay-stripe-btn"
+                  className="w-full bg-gradient-to-r from-indigo-600 via-purple-600 to-brand-purple hover:from-indigo-500 hover:to-purple-500 text-white text-[11px] uppercase tracking-wider py-3 rounded-full font-bold transition-all shadow-md flex items-center justify-center gap-1.5 cursor-pointer group text-center"
+                >
+                  <CreditCard className="w-3.5 h-3.5 text-indigo-200 group-hover:scale-110 transition-transform shrink-0" />
+                  <span>Pay Now (Stripe)</span>
+                  <ExternalLink className="w-3 h-3 text-white/80 shrink-0" />
+                </a>
+
+                <a
+                  href={PAY_PAL_URL}
                   target="_blank"
                   rel="noopener noreferrer"
                   id="summary-pay-now-btn"
-                  className="w-full bg-gradient-to-r from-brand-pink via-brand-purple to-violet-accent hover:from-pink-500 hover:to-purple-600 text-white text-xs uppercase tracking-widest py-3 rounded-full font-bold transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer group"
+                  className="w-full bg-gradient-to-r from-brand-pink via-brand-purple to-violet-accent hover:from-pink-500 hover:to-purple-600 text-white text-[11px] uppercase tracking-wider py-3 rounded-full font-bold transition-all shadow-md flex items-center justify-center gap-1.5 cursor-pointer group text-center"
                 >
-                  <CreditCard className="w-3.5 h-3.5 text-teal-200 group-hover:scale-110 transition-transform" />
-                  <span>Pay Now</span>
-                  <ExternalLink className="w-3 h-3 text-white/80" />
+                  <CreditCard className="w-3.5 h-3.5 text-teal-200 group-hover:scale-110 transition-transform shrink-0" />
+                  <span>Pay Now (PayPal)</span>
+                  <ExternalLink className="w-3 h-3 text-white/80 shrink-0" />
                 </a>
               </div>
             </div>
@@ -447,38 +474,54 @@ Direct Zoom Scheduler: ${BOOK_NOW_URL}`,
               <span className="text-[10px] font-mono uppercase tracking-widest text-brand-purple font-bold">Fast Action Portal</span>
               <h3 className="font-serif text-2xl font-bold text-charcoal">Book Slot or Complete Payment</h3>
               <p className="text-xs text-slate-500">
-                You can immediately schedule on Zoom with <strong>Book Now</strong> or complete payment securely via PayPal with <strong>Pay Now</strong>.
+                You can immediately schedule on Zoom with <strong>Book Now</strong> or complete payment securely via Stripe or PayPal with <strong>Pay Now</strong>.
               </p>
             </div>
 
             {/* Quick Link Banner Buttons */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs">
               <a
                 href={BOOK_NOW_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="p-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-center transition-all flex flex-col items-center justify-center gap-1 group shadow-xs cursor-pointer"
+                className="p-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-center transition-all flex flex-col items-center justify-center gap-1 group shadow-xs cursor-pointer"
               >
                 <div className="flex items-center gap-1.5 font-bold text-xs uppercase tracking-wider">
-                  <Calendar className="w-4 h-4 text-pink-300 group-hover:scale-110 transition-transform" />
+                  <Calendar className="w-3.5 h-3.5 text-pink-300 group-hover:scale-110 transition-transform" />
                   <span>Book Now</span>
                   <ExternalLink className="w-3 h-3 text-slate-400" />
                 </div>
-                <span className="text-[10px] text-slate-300 font-normal">Direct Zoom Calendar</span>
+                <span className="text-[10px] text-slate-300 font-normal">Zoom Calendar</span>
               </a>
 
               <a
-                href={PAY_NOW_URL}
+                href={PAY_STRIPE_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="p-3.5 rounded-xl bg-gradient-to-r from-brand-pink via-brand-purple to-violet-accent hover:from-pink-500 hover:to-purple-600 text-white text-center transition-all flex flex-col items-center justify-center gap-1 group shadow-xs cursor-pointer"
+                id="portal-pay-stripe-btn"
+                className="p-3 rounded-xl bg-gradient-to-r from-indigo-600 via-purple-600 to-brand-purple hover:from-indigo-500 hover:to-purple-500 text-white text-center transition-all flex flex-col items-center justify-center gap-1 group shadow-xs cursor-pointer"
               >
                 <div className="flex items-center gap-1.5 font-bold text-xs uppercase tracking-wider">
-                  <CreditCard className="w-4 h-4 text-teal-200 group-hover:scale-110 transition-transform" />
-                  <span>Pay Now</span>
+                  <CreditCard className="w-3.5 h-3.5 text-indigo-200 group-hover:scale-110 transition-transform" />
+                  <span>Pay Now (Stripe)</span>
                   <ExternalLink className="w-3 h-3 text-white/90" />
                 </div>
-                <span className="text-[10px] text-pink-100 font-normal">PayPal Secure Checkout</span>
+                <span className="text-[10px] text-indigo-100 font-normal">Card / Apple Pay</span>
+              </a>
+
+              <a
+                href={PAY_PAL_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                id="portal-pay-paypal-btn"
+                className="p-3 rounded-xl bg-gradient-to-r from-brand-pink via-brand-purple to-violet-accent hover:from-pink-500 hover:to-purple-600 text-white text-center transition-all flex flex-col items-center justify-center gap-1 group shadow-xs cursor-pointer"
+              >
+                <div className="flex items-center gap-1.5 font-bold text-xs uppercase tracking-wider">
+                  <CreditCard className="w-3.5 h-3.5 text-teal-200 group-hover:scale-110 transition-transform" />
+                  <span>Pay Now (PayPal)</span>
+                  <ExternalLink className="w-3 h-3 text-white/90" />
+                </div>
+                <span className="text-[10px] text-pink-100 font-normal">PayPal Checkout</span>
               </a>
             </div>
 
@@ -505,13 +548,23 @@ Direct Zoom Scheduler: ${BOOK_NOW_URL}`,
                       <ExternalLink className="w-2.5 h-2.5" />
                     </a>
                     <a
-                      href={PAY_NOW_URL}
+                      href={PAY_STRIPE_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 bg-gradient-to-r from-indigo-600 to-brand-purple text-white text-xs uppercase tracking-wider py-2.5 px-3 rounded-xl font-bold text-center flex items-center justify-center gap-1 hover:shadow"
+                    >
+                      <CreditCard className="w-3.5 h-3.5 text-indigo-200" />
+                      <span>2. Pay via Stripe</span>
+                      <ExternalLink className="w-2.5 h-2.5" />
+                    </a>
+                    <a
+                      href={PAY_PAL_URL}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex-1 bg-gradient-to-r from-brand-purple to-brand-pink text-white text-xs uppercase tracking-wider py-2.5 px-3 rounded-xl font-bold text-center flex items-center justify-center gap-1 hover:shadow"
                     >
-                      <CreditCard className="w-3.5 h-3.5" />
-                      <span>2. Pay via PayPal</span>
+                      <CreditCard className="w-3.5 h-3.5 text-pink-200" />
+                      <span>3. Pay via PayPal</span>
                       <ExternalLink className="w-2.5 h-2.5" />
                     </a>
                   </div>
@@ -813,7 +866,7 @@ Direct Zoom Scheduler: ${BOOK_NOW_URL}`,
           {[
             {
               q: "How does the CAD $30/hour billing work?",
-              a: "Sessions are billed strictly at CAD $30 per hour. If you book a 1-hour session, the total is CAD $30. If you book the 5-hour intensive bundle, you receive a discount ($135 CAD). You can pay directly with the PayPal 'Pay Now' button."
+              a: "Sessions are billed strictly at CAD $30 per hour. If you book a 1-hour session, the total is CAD $30. If you book the 5-hour intensive bundle, you receive a discount ($135 CAD). You can pay directly with the Stripe or PayPal 'Pay Now' buttons."
             },
             {
               q: "How do I schedule my session time?",
@@ -867,28 +920,40 @@ Direct Zoom Scheduler: ${BOOK_NOW_URL}`,
         <p className="text-xs text-slate-300 max-w-lg mx-auto leading-relaxed">
           Book your first hour of collaborative writing at CAD $30/hour and experience the clarity of intentional, slow literature mentorship.
         </p>
-        <div className="flex flex-wrap justify-center gap-4 pt-2">
+        <div className="flex flex-wrap justify-center gap-3.5 pt-2">
           <a
             href={BOOK_NOW_URL}
             target="_blank"
             rel="noopener noreferrer"
             id="footer-book-now-btn"
-            className="bg-white/10 hover:bg-white/20 text-white text-xs uppercase tracking-widest px-8 py-3.5 rounded-full font-bold transition-all border border-white/20 cursor-pointer flex items-center gap-2 group"
+            className="bg-white/10 hover:bg-white/20 text-white text-xs uppercase tracking-widest px-7 py-3.5 rounded-full font-bold transition-all border border-white/20 cursor-pointer flex items-center gap-2 group"
           >
             <Calendar className="w-4 h-4 text-pink-300 group-hover:scale-110 transition-transform" />
             <span>Book Now</span>
             <ExternalLink className="w-3 h-3 text-slate-400" />
           </a>
+
+          <a
+            href={PAY_STRIPE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            id="footer-pay-stripe-btn"
+            className="bg-gradient-to-r from-indigo-600 via-purple-600 to-brand-purple hover:from-indigo-500 hover:to-purple-500 text-white text-xs uppercase tracking-widest px-7 py-3.5 rounded-full font-bold transition-all shadow-md cursor-pointer flex items-center gap-2 group"
+          >
+            <CreditCard className="w-4 h-4 text-indigo-200 group-hover:scale-110 transition-transform" />
+            <span>Pay Now (Stripe)</span>
+            <ExternalLink className="w-3 h-3 text-white/90" />
+          </a>
           
           <a
-            href={PAY_NOW_URL}
+            href={PAY_PAL_URL}
             target="_blank"
             rel="noopener noreferrer"
             id="footer-pay-now-btn"
-            className="bg-gradient-to-r from-brand-pink via-brand-purple to-violet-accent hover:from-pink-500 hover:to-purple-600 text-white text-xs uppercase tracking-widest px-8 py-3.5 rounded-full font-bold transition-all shadow-md cursor-pointer flex items-center gap-2 group"
+            className="bg-gradient-to-r from-brand-pink via-brand-purple to-violet-accent hover:from-pink-500 hover:to-purple-600 text-white text-xs uppercase tracking-widest px-7 py-3.5 rounded-full font-bold transition-all shadow-md cursor-pointer flex items-center gap-2 group"
           >
             <CreditCard className="w-4 h-4 text-teal-200 group-hover:scale-110 transition-transform" />
-            <span>Pay Now</span>
+            <span>Pay Now (PayPal)</span>
             <ExternalLink className="w-3 h-3 text-white/90" />
           </a>
         </div>
